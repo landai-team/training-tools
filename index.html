@@ -3,236 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mock Call Scenario Roulette — Land AI</title>
+<title>Mock Call Scenario Roulette</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fb;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.10);
-    padding: 36px 40px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 22px;
-    width: 360px;
-  }
-  .brand { font-size: 11px; font-weight: 700; color: #8a9ab5; letter-spacing: 1.5px; text-transform: uppercase; }
-  .heading { font-size: 17px; font-weight: 700; color: #0A1628; text-align: center; }
-  .sub { font-size: 12.5px; color: #7a8a9a; text-align: center; line-height: 1.5; margin-top: -12px; }
-
-  .wheel-area { position: relative; width: 280px; height: 280px; }
-  .pointer {
-    position: absolute; top: -16px; left: 50%;
-    transform: translateX(-50%);
-    width: 0; height: 0;
-    border-left: 13px solid transparent;
-    border-right: 13px solid transparent;
-    border-top: 24px solid #0A1628;
-    z-index: 10;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
-  }
-  canvas { border-radius: 50%; box-shadow: 0 4px 18px rgba(0,0,0,.13); display: block; }
-
-  .spin-btn {
-    background: #0A1628;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 56px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: .5px;
-    transition: transform .1s, background .15s;
-    width: 100%;
-  }
-  .spin-btn:hover { background: #172540; }
-  .spin-btn:active { transform: scale(.98); }
-  .spin-btn:disabled { background: #9aa5b8; cursor: not-allowed; }
-
-  .result-box {
-    width: 100%;
-    background: #f5f7fb;
-    border: 1.5px solid #e0e5ef;
-    border-radius: 12px;
-    padding: 18px 20px;
-    text-align: center;
-    min-height: 90px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    transition: border-color .3s;
-  }
-  .result-box.revealed { border-color: #0A1628; }
-  .result-label { font-size: 11px; color: #8a9ab5; text-transform: uppercase; letter-spacing: .8px; }
-  .result-name { font-size: 26px; font-weight: 700; color: #0A1628; }
-  .result-seller { font-size: 13px; color: #5a6a7a; }
-  .badge {
-    font-size: 11px; font-weight: 700;
-    padding: 3px 12px; border-radius: 4px; margin-top: 2px;
-  }
-  .badge-easy   { background: #F5A623; color: #0A1628; }
-  .badge-medium { background: #d97706; color: #fff; }
-  .badge-hard   { background: #c0392b; color: #fff; }
-
-  .divider { width: 100%; height: 1px; background: #e8ecf4; }
-
-  .scenario-hints { width: 100%; display: flex; flex-direction: column; gap: 7px; }
-  .hint-row { display: flex; align-items: center; gap: 10px; }
-  .hint-dot { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-  .dot-a { background: #0A1628; color: #fff; }
-  .dot-b { background: #F5A623; color: #0A1628; }
-  .dot-c { background: #1a3a6a; color: #fff; }
-  .hint-text { font-size: 12px; color: #5a6a7a; line-height: 1.4; }
-  .hint-text strong { color: #0A1628; }
+  body { font-family: Arial, sans-serif; background: #0A1628; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  .header { text-align: center; margin-bottom: 28px; }
+  .header .brand { font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #F5A623; text-transform: uppercase; margin-bottom: 6px; }
+  .header h1 { font-size: 26px; font-weight: 800; color: #FFFFFF; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #8899AA; }
+  .wheel-container { position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+  .pointer { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 26px solid #F5A623; z-index: 10; }
+  canvas { border-radius: 50%; box-shadow: 0 0 0 6px #1D2E45, 0 0 0 10px #F5A623, 0 8px 40px rgba(0,0,0,0.6); display: block; }
+  #spinBtn { background: #F5A623; color: #0A1628; border: none; border-radius: 50px; padding: 16px 52px; font-size: 17px; font-weight: 800; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 20px rgba(245,166,35,0.4); }
+  #spinBtn:disabled { background: #2D3F55; color: #506070; cursor: not-allowed; box-shadow: none; }
+  #result { display: none; margin-top: 28px; background: #111E30; border: 2px solid #1D2E45; border-radius: 16px; padding: 24px 28px; max-width: 420px; width: 100%; text-align: center; }
+  #result .scenario-badge { display: inline-block; font-size: 42px; font-weight: 900; width: 72px; height: 72px; line-height: 72px; border-radius: 50%; margin-bottom: 12px; }
+  #result .seller-name { font-size: 20px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px; }
+  #result .difficulty { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 3px 12px; border-radius: 20px; display: inline-block; margin-bottom: 14px; }
+  #result .focus-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #506070; text-transform: uppercase; margin-bottom: 6px; }
+  #result .focus-text { font-size: 14px; color: #C8D8E8; line-height: 1.5; }
+  #lockedMsg { display: none; margin-top: 16px; background: #1A0D00; border: 1px solid #7B3F00; border-radius: 10px; padding: 12px 20px; max-width: 420px; width: 100%; text-align: center; color: #F5A623; font-size: 13px; font-weight: 600; }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="brand">Land AI Training</div>
-  <div class="heading">Mock Call Scenario Roulette</div>
-  <div class="sub">Spin to get your assigned scenario for the mock call.</div>
-
-  <div class="wheel-area">
-    <div class="pointer"></div>
-    <canvas id="wheel" width="280" height="280"></canvas>
-  </div>
-
-  <button class="spin-btn" id="spinBtn" onclick="spin()">Spin</button>
-
-  <div class="result-box" id="resultBox">
-    <div class="result-label">Your scenario</div>
-    <div class="result-name" id="resultName">—</div>
-    <div class="result-seller" id="resultSeller"></div>
-    <div id="resultBadge"></div>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="scenario-hints">
-    <div class="hint-row">
-      <div class="hint-dot dot-a">A</div>
-      <div class="hint-text"><strong>Bobby Mitchell</strong> — Motivated seller, no major objections. Focus on clean script delivery.</div>
-    </div>
-    <div class="hint-row">
-      <div class="hint-dot dot-b">B</div>
-      <div class="hint-text"><strong>Pat Williams</strong> — Says "not interested." Use the full NI rebuttal sequence.</div>
-    </div>
-    <div class="hint-row">
-      <div class="hint-dot dot-c">C</div>
-      <div class="hint-text"><strong>Jim Calloway</strong> — Wants a price immediately. Use the price objection rebuttals.</div>
-    </div>
-  </div>
+<div class="header">
+  <div class="brand">Land AI · Training Tool</div>
+  <h1>🎡 Mock Call Scenario</h1>
+  <p>Spin to get your scenario — <strong style="color:#F5A623">one spin only</strong>, no retakes!</p>
 </div>
-
+<div class="wheel-container">
+  <div class="pointer"></div>
+  <canvas id="wheel" width="300" height="300"></canvas>
+</div>
+<button id="spinBtn">🎲 Spin</button>
+<div id="result">
+  <div class="scenario-badge" id="resBadge"></div>
+  <div class="seller-name" id="resName"></div>
+  <div class="difficulty" id="resDifficulty"></div>
+  <div class="focus-label">Your Focus</div>
+  <div class="focus-text" id="resFocus"></div>
+</div>
+<div id="lockedMsg"><span>🔒</span> You already spun! Your scenario is locked in — no retakes allowed.</div>
 <script>
-const scenarios = [
-  { label: "A", name: "Scenario A", seller: "Bobby Mitchell", diff: "Easy",   badgeClass: "badge-easy" },
-  { label: "B", name: "Scenario B", seller: "Pat Williams",   diff: "Medium", badgeClass: "badge-medium" },
-  { label: "C", name: "Scenario C", seller: "Jim Calloway",   diff: "Hard",   badgeClass: "badge-hard" },
+const STORAGE_KEY='landai_mock_scenario';
+const scenarios=[
+  {letter:'A',seller:'Bobby Mitchell',property:'5-acre lot — Maricopa County, AZ',difficulty:'EASY',diffColor:'#F5A623',diffText:'#0A1628',focus:'Full script delivery + clean Maya handoff. No objections — focus on flow and confidence.',segColor:'#0A1628',textColor:'#F5A623'},
+  {letter:'B',seller:'Pat Williams',property:'2-acre plot — Polk County, FL',difficulty:'MEDIUM',diffColor:'#2D6A4F',diffText:'#FFFFFF',focus:'Use all 3 Not Interested rebuttals in order before accepting NI.',segColor:'#F5A623',textColor:'#0A1628'},
+  {letter:'C',seller:'Jim Calloway',property:'10-acre parcel — Hood County, TX',difficulty:'HARD',diffColor:'#D92D20',diffText:'#FFFFFF',focus:'Handle How much can you offer? with price rebuttals — acknowledge, explain process, route to Maya.',segColor:'#1D4ED8',textColor:'#FFFFFF'}
 ];
-
-const COLORS      = ["#0A1628", "#F5A623", "#1a3a6a"];
-const TEXT_COLORS = ["#ffffff", "#0A1628", "#ffffff"];
-const canvas = document.getElementById("wheel");
-const ctx    = canvas.getContext("2d");
-const arc    = (2 * Math.PI) / 3;
-let currentAngle = 0;
-let spinning     = false;
-
-function drawWheel(angle) {
-  const cx = 140, cy = 140, r = 128;
-  ctx.clearRect(0, 0, 280, 280);
-  for (let i = 0; i < 3; i++) {
-    const start = angle + i * arc;
-    const end   = start + arc;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, end);
-    ctx.closePath();
-    ctx.fillStyle = COLORS[i];
-    ctx.fill();
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth   = 3;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(start + arc / 2);
-    ctx.textAlign  = "right";
-    ctx.fillStyle  = TEXT_COLORS[i];
-    ctx.font       = "bold 42px Arial";
-    ctx.fillText(scenarios[i].label, r - 18, 15);
-    ctx.restore();
-  }
-  // Center hub
-  ctx.beginPath();
-  ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
-  ctx.fillStyle   = "#fff";
-  ctx.fill();
-  ctx.strokeStyle = "#dde2ec";
-  ctx.lineWidth   = 2;
-  ctx.stroke();
-}
-
-drawWheel(0);
-
-function getWinner(angle) {
-  const norm = (((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
-  const idx  = Math.floor(norm / arc) % 3;
-  return (3 - idx) % 3;
-}
-
-function spin() {
-  if (spinning) return;
-  spinning = true;
-  document.getElementById("spinBtn").disabled = true;
-  document.getElementById("resultName").textContent   = "—";
-  document.getElementById("resultSeller").textContent = "";
-  document.getElementById("resultBadge").innerHTML    = "";
-  document.getElementById("resultBox").classList.remove("revealed");
-
-  const extraSpins  = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
-  const target      = Math.random() * 2 * Math.PI;
-  const totalAngle  = extraSpins + target;
-  const duration    = 3400;
-  const start       = performance.now();
-  const startAngle  = currentAngle;
-
-  function ease(t) { return 1 - Math.pow(1 - t, 4); }
-
-  function animate(now) {
-    const elapsed  = now - start;
-    const progress = Math.min(elapsed / duration, 1);
-    currentAngle   = startAngle + totalAngle * ease(progress);
-    drawWheel(currentAngle);
-
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    } else {
-      spinning = false;
-      document.getElementById("spinBtn").disabled = false;
-      const s = scenarios[getWinner(currentAngle)];
-      document.getElementById("resultName").textContent   = s.name;
-      document.getElementById("resultSeller").textContent = s.seller;
-      document.getElementById("resultBadge").innerHTML    =
-        `<span class="badge ${s.badgeClass}">${s.diff}</span>`;
-      document.getElementById("resultBox").classList.add("revealed");
-    }
-  }
-  requestAnimationFrame(animate);
-}
+const canvas=document.getElementById('wheel'),ctx=canvas.getContext('2d'),spinBtn=document.getElementById('spinBtn'),resultDiv=document.getElementById('result'),lockedMsg=document.getElementById('lockedMsg');
+const NUM=scenarios.length,ARC=(2*Math.PI)/NUM,CX=canvas.width/2,CY=canvas.height/2,R=canvas.width/2-4;
+let currentAngle=0,isSpinning=false,hasSpun=false;
+function drawWheel(a){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<NUM;i++){const s=a+i*ARC,e=s+ARC,sc=scenarios[i];ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R,s,e);ctx.closePath();ctx.fillStyle=sc.segColor;ctx.fill();ctx.strokeStyle='#0A1628';ctx.lineWidth=3;ctx.stroke();ctx.save();ctx.translate(CX,CY);ctx.rotate(s+ARC/2);ctx.textAlign='right';ctx.fillStyle=sc.textColor;ctx.font='bold 52px Arial';ctx.fillText(sc.letter,R-22,18);ctx.restore();}ctx.beginPath();ctx.arc(CX,CY,22,0,2*Math.PI);ctx.fillStyle='#F5A623';ctx.fill();ctx.strokeStyle='#0A1628';ctx.lineWidth=3;ctx.stroke();}
+function showResult(idx,anim){const sc=scenarios[idx],b=document.getElementById('resBadge');b.textContent=sc.letter;b.style.background=sc.segColor==='#F5A623'?'#F5A623':sc.segColor;b.style.color=sc.textColor;b.style.border='3px solid '+(sc.segColor==='#0A1628'?'#F5A623':'#0A1628');document.getElementById('resName').textContent=sc.seller+' · '+sc.property;const d=document.getElementById('resDifficulty');d.textContent=sc.difficulty;d.style.background=sc.diffColor;d.style.color=sc.diffText;document.getElementById('resFocus').textContent=sc.focus;resultDiv.style.display='block';if(!anim)resultDiv.style.animation='none';}
+function getWinner(a){return Math.floor((((-a-Math.PI/2)%(2*Math.PI))+2*Math.PI)%(2*Math.PI)/ARC)%NUM;}
+function easeOut(t){return 1-Math.pow(1-t,4);}
+function spin(){if(isSpinning||hasSpun)return;isSpinning=true;spinBtn.disabled=true;const ex=(5+Math.floor(Math.random()*4))*2*Math.PI,ts=Math.floor(Math.random()*NUM),to=-(ts*ARC+ARC/2+Math.PI/2),tr=ex+((to-currentAngle%(2*Math.PI)+4*Math.PI)%(2*Math.PI)),sa=currentAngle,dur=4000+Math.random()*1000,st=performance.now();function af(now){const t=Math.min((now-st)/dur,1);currentAngle=sa+tr*easeOut(t);drawWheel(currentAngle);if(t<1){requestAnimationFrame(af);}else{currentAngle=sa+tr;drawWheel(currentAngle);isSpinning=false;hasSpun=true;const w=getWinner(currentAngle);localStorage.setItem(STORAGE_KEY,JSON.stringify({winner:w,angle:currentAngle}));showResult(w,true);lockedMsg.style.display='block';}}requestAnimationFrame(af);}
+function init(){const saved=localStorage.getItem(STORAGE_KEY);if(saved){try{const{winner,angle}=JSON.parse(saved);hasSpun=true;currentAngle=angle||0;drawWheel(currentAngle);spinBtn.disabled=true;showResult(winner,false);lockedMsg.style.display='block';}catch(e){drawWheel(0);}}else{drawWheel(0);}}
+spinBtn.addEventListener('click',spin);init();
 </script>
 </body>
 </html>
