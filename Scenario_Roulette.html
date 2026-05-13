@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Call Scenario Roulette — Land AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.10);
+    padding: 36px 40px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    width: 360px;
+  }
+  .brand { font-size: 11px; font-weight: 700; color: #8a9ab5; letter-spacing: 1.5px; text-transform: uppercase; }
+  .heading { font-size: 17px; font-weight: 700; color: #0A1628; text-align: center; }
+  .sub { font-size: 12.5px; color: #7a8a9a; text-align: center; line-height: 1.5; margin-top: -12px; }
+
+  .wheel-area { position: relative; width: 280px; height: 280px; }
+  .pointer {
+    position: absolute; top: -16px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 13px solid transparent;
+    border-right: 13px solid transparent;
+    border-top: 24px solid #0A1628;
+    z-index: 10;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  }
+  canvas { border-radius: 50%; box-shadow: 0 4px 18px rgba(0,0,0,.13); display: block; }
+
+  .spin-btn {
+    background: #0A1628;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 56px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: transform .1s, background .15s;
+    width: 100%;
+  }
+  .spin-btn:hover { background: #172540; }
+  .spin-btn:active { transform: scale(.98); }
+  .spin-btn:disabled { background: #9aa5b8; cursor: not-allowed; }
+
+  .result-box {
+    width: 100%;
+    background: #f5f7fb;
+    border: 1.5px solid #e0e5ef;
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: border-color .3s;
+  }
+  .result-box.revealed { border-color: #0A1628; }
+  .result-label { font-size: 11px; color: #8a9ab5; text-transform: uppercase; letter-spacing: .8px; }
+  .result-name { font-size: 26px; font-weight: 700; color: #0A1628; }
+  .result-seller { font-size: 13px; color: #5a6a7a; }
+  .badge {
+    font-size: 11px; font-weight: 700;
+    padding: 3px 12px; border-radius: 4px; margin-top: 2px;
+  }
+  .badge-easy   { background: #F5A623; color: #0A1628; }
+  .badge-medium { background: #d97706; color: #fff; }
+  .badge-hard   { background: #c0392b; color: #fff; }
+
+  .divider { width: 100%; height: 1px; background: #e8ecf4; }
+
+  .scenario-hints { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+  .hint-row { display: flex; align-items: center; gap: 10px; }
+  .hint-dot { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .dot-a { background: #0A1628; color: #fff; }
+  .dot-b { background: #F5A623; color: #0A1628; }
+  .dot-c { background: #1a3a6a; color: #fff; }
+  .hint-text { font-size: 12px; color: #5a6a7a; line-height: 1.4; }
+  .hint-text strong { color: #0A1628; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">Land AI Training</div>
+  <div class="heading">Mock Call Scenario Roulette</div>
+  <div class="sub">Spin to get your assigned scenario for the mock call.</div>
+
+  <div class="wheel-area">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="280" height="280"></canvas>
+  </div>
+
+  <button class="spin-btn" id="spinBtn" onclick="spin()">Spin</button>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-label">Your scenario</div>
+    <div class="result-name" id="resultName">—</div>
+    <div class="result-seller" id="resultSeller"></div>
+    <div id="resultBadge"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="scenario-hints">
+    <div class="hint-row">
+      <div class="hint-dot dot-a">A</div>
+      <div class="hint-text"><strong>Bobby Mitchell</strong> — Motivated seller, no major objections. Focus on clean script delivery.</div>
+    </div>
+    <div class="hint-row">
+      <div class="hint-dot dot-b">B</div>
+      <div class="hint-text"><strong>Pat Williams</strong> — Says "not interested." Use the full NI rebuttal sequence.</div>
+    </div>
+    <div class="hint-row">
+      <div class="hint-dot dot-c">C</div>
+      <div class="hint-text"><strong>Jim Calloway</strong> — Wants a price immediately. Use the price objection rebuttals.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const scenarios = [
+  { label: "A", name: "Scenario A", seller: "Bobby Mitchell", diff: "Easy",   badgeClass: "badge-easy" },
+  { label: "B", name: "Scenario B", seller: "Pat Williams",   diff: "Medium", badgeClass: "badge-medium" },
+  { label: "C", name: "Scenario C", seller: "Jim Calloway",   diff: "Hard",   badgeClass: "badge-hard" },
+];
+
+const COLORS      = ["#0A1628", "#F5A623", "#1a3a6a"];
+const TEXT_COLORS = ["#ffffff", "#0A1628", "#ffffff"];
+const canvas = document.getElementById("wheel");
+const ctx    = canvas.getContext("2d");
+const arc    = (2 * Math.PI) / 3;
+let currentAngle = 0;
+let spinning     = false;
+
+function drawWheel(angle) {
+  const cx = 140, cy = 140, r = 128;
+  ctx.clearRect(0, 0, 280, 280);
+  for (let i = 0; i < 3; i++) {
+    const start = angle + i * arc;
+    const end   = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + arc / 2);
+    ctx.textAlign  = "right";
+    ctx.fillStyle  = TEXT_COLORS[i];
+    ctx.font       = "bold 42px Arial";
+    ctx.fillText(scenarios[i].label, r - 18, 15);
+    ctx.restore();
+  }
+  // Center hub
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
+  ctx.fillStyle   = "#fff";
+  ctx.fill();
+  ctx.strokeStyle = "#dde2ec";
+  ctx.lineWidth   = 2;
+  ctx.stroke();
+}
+
+drawWheel(0);
+
+function getWinner(angle) {
+  const norm = (((-angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
+  const idx  = Math.floor(norm / arc) % 3;
+  return (3 - idx) % 3;
+}
+
+function spin() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById("spinBtn").disabled = true;
+  document.getElementById("resultName").textContent   = "—";
+  document.getElementById("resultSeller").textContent = "";
+  document.getElementById("resultBadge").innerHTML    = "";
+  document.getElementById("resultBox").classList.remove("revealed");
+
+  const extraSpins  = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+  const target      = Math.random() * 2 * Math.PI;
+  const totalAngle  = extraSpins + target;
+  const duration    = 3400;
+  const start       = performance.now();
+  const startAngle  = currentAngle;
+
+  function ease(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function animate(now) {
+    const elapsed  = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    currentAngle   = startAngle + totalAngle * ease(progress);
+    drawWheel(currentAngle);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      document.getElementById("spinBtn").disabled = false;
+      const s = scenarios[getWinner(currentAngle)];
+      document.getElementById("resultName").textContent   = s.name;
+      document.getElementById("resultSeller").textContent = s.seller;
+      document.getElementById("resultBadge").innerHTML    =
+        `<span class="badge ${s.badgeClass}">${s.diff}</span>`;
+      document.getElementById("resultBox").classList.add("revealed");
+    }
+  }
+  requestAnimationFrame(animate);
+}
+</script>
+</body>
+</html>
